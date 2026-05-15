@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PREPIN'FOAM — Pink Magic Foam | The Art of Clean</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'veloria-rose': '#F4A7C3',
+                        'veloria-rose-deep': '#D4527A',
+                        'veloria-black': '#0D0D0D',
+                        'veloria-dark': '#1A1A1A',
+                        'veloria-gray': '#2C2C2C',
+                        'veloria-white': '#F8F4F2',
+                        'veloria-muted': '#A89FA0',
+                        'veloria-gold': '#C9A84C',
+                    },
+                    fontFamily: {
+                        'playfair': ['"Playfair Display"', 'serif'],
+                        'inter': ['"Inter"', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
+
+    <!-- Three.js pour la bouteille 3D (conservé mais non utilisé sur la page produit) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
+    </script>
+
+    <style>
+        :root {
+            --veloria-rose: #F4A7C3;
+            --veloria-rose-deep: #D4527A;
+            --veloria-black: #0D0D0D;
+            --veloria-dark: #1A1A1A;
+            --veloria-gray: #2C2C2C;
+            --veloria-white: #F8F4F2;
+            --veloria-muted: #A89FA0;
+            --veloria-gold: #C9A84C;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--veloria-black);
+            color: var(--veloria-white);
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+        }
+        @keyframes floatBubbles {
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+            25% {
+                transform: translateY(-30px) scale(1.08);
+            }
+            50% {
+                transform: translateY(-15px) scale(0.95);
+            }
+            75% {
+                transform: translateY(-40px) scale(1.04);
+            }
+        }
+        @keyframes drawCheck {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+        @keyframes pulseGlow {
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(212, 82, 122, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(212, 82, 122, 0.7);
+            }
+        }
+        @keyframes toastSlideIn {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes toastSlideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+            opacity: 0;
+        }
+        .delay-0 {
+            animation-delay: 0s;
+        }
+        .delay-1 {
+            animation-delay: 0.2s;
+        }
+        .delay-2 {
+            animation-delay: 0.4s;
+        }
+        .delay-3 {
+            animation-delay: 0.6s;
+        }
+        .delay-4 {
+            animation-delay: 0.8s;
+        }
+
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .reveal-on-scroll.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--veloria-dark);
+            border: 1px solid var(--veloria-rose-deep);
+            color: var(--veloria-white);
+            padding: 14px 22px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            z-index: 9999;
+            animation: toastSlideIn 0.35s ease-out forwards;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+        }
+        .toast.toast-out {
+            animation: toastSlideOut 0.35s ease-in forwards;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--veloria-black);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--veloria-gray);
+            border-radius: 3px;
+        }
+
+        /* Page transition */
+        section[id^="page-"] {
+            animation: fadeIn 0.3s ease-out;
+            min-height: 100vh;
+        }
+
+        /* Particles background for hero */
+        .hero-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .hero-particle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(244, 167, 195, 0.5) 0%, rgba(244, 167, 195, 0) 70%);
+            animation: floatBubbles 7s infinite ease-in-out;
+        }
+
+        @media (max-width: 768px) {
+            .hero-particle {
+                animation-duration: 5s;
+            }
+        }
+    </style>
+</head>
+<body style="background:#0D0D0D; color:#F8F4F2; font-family:'Inter',sans-serif;">
+
+    <!-- NAVIGATION -->
+    <nav id="navbar" style="position:fixed;top:0;left:0;right:0;z-index:100;background:#0D0D0D;border-bottom:1px solid #2C2C2C;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;">
+        <div style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="navigateTo('home')">
+            <span style="color:#F4A7C3;font-size:18px;">◆</span>
+            <span style="font-family:'Playfair Display',serif;font-size:22px;color:#F4A7C3;font-weight:700;letter-spacing:1px;">PREPIN'FOAM</span>
+        </div>
+        <div id="nav-links" style="display:flex;gap:32px;">
+            <a href="#" onclick="navigateTo('home');return false;" style="color:#A89FA0;font-size:14px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#F8F4F2'" onmouseout="this.style.color='#A89FA0'">Accueil</a>
+            <a href="#" onclick="navigateTo('product');return false;" style="color:#A89FA0;font-size:14px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#F8F4F2'" onmouseout="this.style.color='#A89FA0'">Produit</a>
+            <a href="#" onclick="navigateTo('cart');return false;" style="color:#A89FA0;font-size:14px;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#F8F4F2'" onmouseout="this.style.color='#A89FA0'">Panier</a>
+        </div>
+        <div style="position:relative;cursor:pointer;" onclick="navigateTo('cart')">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F8F4F2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 01-8 0"/>
+            </svg>
+            <span id="cart-count" style="display:none;position:absolute;top:-8px;right:-10px;background:#D4527A;color:#fff;font-size:11px;font-weight:600;width:20px;height:20px;border-radius:50%;align-items:center;justify-content:center;">0</span>
+        </div>
+    </nav>
+
+    <!-- PAGES -->
+    <!-- PAGE 1 — ACCUEIL -->
+    <section id="page-home" style="padding-top:64px;">
+        <!-- Hero -->
+        <div style="position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:80px 28px;overflow:hidden;">
+            <div class="hero-particles" id="hero-particles"></div>
+            <div style="display:flex;align-items:center;max-width:1200px;width:100%;gap:40px;position:relative;z-index:1;flex-wrap:wrap;">
+                <div style="flex:1;min-width:300px;text-align:center;">
+                    <span class="animate-fade-in-up delay-0" style="display:inline-block;font-size:11px;letter-spacing:3px;color:#F4A7C3;background:rgba(244,167,195,0.1);border:1px solid #F4A7C3;border-radius:20px;padding:4px 14px;margin-bottom:20px;font-family:'Inter',sans-serif;">✦ NOUVEAU — COLLECTION 2025</span>
+                    <h1 class="animate-fade-in-up delay-1" style="font-family:'Playfair Display',serif;font-size:64px;color:#F8F4F2;line-height:1.1;margin:16px 0;">La <em style="color:#F4A7C3;font-style:italic;">mousse</em> qui<br>transforme tout.</h1>
+                    <p class="animate-fade-in-up delay-2" style="font-size:18px;color:#A89FA0;max-width:560px;margin:0 auto 28px;">Pink Magic Foam — La formule ultra-concentrée qui enveloppe votre voiture d'une mousse rose dense, protectrice et parfumée.</p>
+                    <div class="animate-fade-in-up delay-3" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+                        <button onclick="navigateTo('product')" style="background:#D4527A;color:#fff;padding:14px 36px;border:none;border-radius:4px;font-size:15px;font-weight:500;cursor:pointer;transition:background 0.2s;font-family:'Inter',sans-serif;" onmouseover="this.style.background='#B03D63'" onmouseout="this.style.background='#D4527A'">Découvrir le produit →</button>
+                        <button onclick="document.getElementById('section-reviews').scrollIntoView({behavior:'smooth'});" style="background:transparent;color:#A89FA0;padding:14px 36px;border:1px solid #A89FA0;border-radius:4px;font-size:15px;font-weight:500;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif;" onmouseover="this.style.borderColor='#F8F4F2';this.style.color='#F8F4F2'" onmouseout="this.style.borderColor='#A89FA0';this.style.color='#A89FA0'">Voir les avis</button>
+                    </div>
+                </div>
+                <div style="flex:1;min-width:300px;display:flex;justify-content:center;" class="animate-fade-in-up delay-4">
+                    <svg width="300" height="400" viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <radialGradient id="bottleGrad" cx="50%" cy="40%">
+                                <stop offset="0%" stop-color="#2C2C2C"/>
+                                <stop offset="100%" stop-color="#0D0D0D"/>
+                            </radialGradient>
+                            <linearGradient id="labelGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#D4527A"/>
+                                <stop offset="100%" stop-color="#B03D63"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Éclaboussures -->
+                        <circle cx="60" cy="120" r="18" fill="none" stroke="#F4A7C3" stroke-width="2" opacity="0.6"/>
+                        <circle cx="50" cy="100" r="8" fill="#F4A7C3" opacity="0.4"/>
+                        <circle cx="240" cy="140" r="22" fill="none" stroke="#F4A7C3" stroke-width="1.5" opacity="0.5"/>
+                        <circle cx="255" cy="115" r="10" fill="#F4A7C3" opacity="0.3"/>
+                        <circle cx="70" cy="300" r="14" fill="none" stroke="#F4A7C3" stroke-width="2" opacity="0.4"/>
+                        <circle cx="230" cy="310" r="16" fill="none" stroke="#F4A7C3" stroke-width="1.5" opacity="0.5"/>
+                        <circle cx="40" cy="200" r="6" fill="#F4A7C3" opacity="0.5"/>
+                        <circle cx="260" cy="240" r="9" fill="#F4A7C3" opacity="0.35"/>
+                        <!-- Bouteille -->
+                        <rect x="110" y="60" width="80" height="260" rx="20" fill="url(#bottleGrad)" stroke="#3C3C3C" stroke-width="2"/>
+                        <rect x="105" y="130" width="90" height="120" rx="8" fill="url(#labelGrad)" opacity="0.9"/>
+                        <text x="150" y="175" text-anchor="middle" fill="#fff" font-family="'Playfair Display',serif" font-size="13" font-weight="700">PREPIN'FOAM</text>
+                        <text x="150" y="198" text-anchor="middle" fill="#fff" font-family="'Inter',sans-serif" font-size="9">Pink Magic Foam</text>
+                        <text x="150" y="218" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="'Inter',sans-serif" font-size="7">SHAMPOING PREMIUM</text>
+                        <line x1="120" y1="228" x2="180" y2="228" stroke="rgba(255,255,255,0.3)" stroke-width="0.5"/>
+                        <text x="150" y="242" text-anchor="middle" fill="#fff" font-family="'Inter',sans-serif" font-size="8">473 ml</text>
+                        <rect x="125" y="30" width="50" height="35" rx="6" fill="#0D0D0D" stroke="#3C3C3C" stroke-width="1.5"/>
+                        <rect x="130" y="18" width="40" height="16" rx="4" fill="#1A1A1A" stroke="#3C3C3C" stroke-width="1"/>
+                        <ellipse cx="150" cy="18" rx="15" ry="5" fill="#0D0D0D" stroke="#3C3C3C" stroke-width="1"/>
+                        <rect x="105" y="310" width="90" height="14" rx="6" fill="#1A1A1A" stroke="#3C3C3C" stroke-width="1"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Avantages -->
+        <div style="background:#1A1A1A;padding:80px 28px;" class="reveal-on-scroll">
+            <h2 style="font-family:'Playfair Display',serif;font-size:36px;text-align:center;color:#F8F4F2;margin-bottom:48px;">Pourquoi Pink Magic Foam ?</h2>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1100px;margin:0 auto;">
+                <div style="background:#2C2C2C;border-radius:8px;padding:32px 24px;border-top:3px solid #D4527A;">
+                    <svg width="48" height="48" viewBox="0 0 48 48" style="margin-bottom:16px;"><circle cx="24" cy="24" r="18" fill="none" stroke="#F4A7C3" stroke-width="2.5"/><circle cx="20" cy="20" r="5" fill="#F4A7C3" opacity="0.6"/><circle cx="30" cy="26" r="4" fill="#F4A7C3" opacity="0.4"/></svg>
+                    <h3 style="font-size:18px;font-weight:500;color:#F8F4F2;margin-bottom:8px;">Mousse Ultra-Dense</h3>
+                    <p style="font-size:14px;color:#A89FA0;line-height:1.6;">Notre formule exclusive génère une mousse rose épaisse qui s'accroche à la carrosserie, encapsule la saleté et la soulève sans frotter.</p>
+                </div>
+                <div style="background:#2C2C2C;border-radius:8px;padding:32px 24px;border-top:3px solid #D4527A;">
+                    <svg width="48" height="48" viewBox="0 0 48 48" style="margin-bottom:16px;"><rect x="10" y="8" width="28" height="36" rx="6" fill="none" stroke="#F4A7C3" stroke-width="2.5"/><rect x="14" y="14" width="8" height="18" rx="2" fill="#F4A7C3" opacity="0.5"/><rect x="26" y="14" width="8" height="18" rx="2" fill="#F4A7C3" opacity="0.3"/><text x="24" y="42" text-anchor="middle" fill="#F4A7C3" font-size="8" font-weight="600">1:50</text></svg>
+                    <h3 style="font-size:18px;font-weight:500;color:#F8F4F2;margin-bottom:8px;">Ultra-Concentré</h3>
+                    <p style="font-size:14px;color:#A89FA0;line-height:1.6;">Un rapport de dilution 1:5 au canon à mousse, jusqu'à 1:50 au pulvérisateur. Une seule bouteille pour des dizaines de lavages.</p>
+                </div>
+                <div style="background:#2C2C2C;border-radius:8px;padding:32px 24px;border-top:3px solid #D4527A;">
+                    <svg width="48" height="48" viewBox="0 0 48 48" style="margin-bottom:16px;"><rect x="8" y="20" width="32" height="14" rx="4" fill="none" stroke="#F4A7C3" stroke-width="2.5"/><rect x="14" y="10" width="6" height="12" rx="2" fill="#F4A7C3" opacity="0.5"/><rect x="28" y="6" width="4" height="16" rx="1.5" fill="#F4A7C3" opacity="0.4"/><line x1="34" y1="22" x2="40" y2="16" stroke="#F4A7C3" stroke-width="2" stroke-linecap="round"/></svg>
+                    <h3 style="font-size:18px;font-weight:500;color:#F8F4F2;margin-bottom:8px;">Compatible Tous Équipements</h3>
+                    <p style="font-size:14px;color:#A89FA0;line-height:1.6;">Fonctionne parfaitement avec votre canon à mousse, votre Kärcher ou tout pistolet haute pression. Rinçage sans résidu.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques -->
+        <div style="background:#0D0D0D;padding:60px 28px;" class="reveal-on-scroll">
+            <div style="display:flex;justify-content:space-around;max-width:900px;margin:0 auto;flex-wrap:wrap;gap:24px;text-align:center;">
+                <div><p style="font-family:'Playfair Display',serif;font-size:48px;color:#F4A7C3;">4.8★</p><p style="font-size:13px;color:#A89FA0;">Note moyenne</p></div>
+                <div><p style="font-family:'Playfair Display',serif;font-size:48px;color:#F4A7C3;">12 000+</p><p style="font-size:13px;color:#A89FA0;">Lavages effectués</p></div>
+                <div><p style="font-family:'Playfair Display',serif;font-size:48px;color:#F4A7C3;">5</p><p style="font-size:13px;color:#A89FA0;">Tailles disponibles</p></div>
+                <div><p style="font-family:'Playfair Display',serif;font-size:48px;color:#F4A7C3;">1:50</p><p style="font-size:13px;color:#A89FA0;">Dilution max</p></div>
+            </div>
+        </div>
+
+        <!-- Avis -->
+        <div id="section-reviews" style="background:#1A1A1A;padding:80px 28px;" class="reveal-on-scroll">
+            <h2 style="font-family:'Playfair Display',serif;font-size:36px;text-align:center;color:#F8F4F2;">Ce qu'ils en pensent</h2>
+            <p style="text-align:center;font-size:14px;color:#A89FA0;margin-bottom:8px;">Avis vérifiés — clients réels <span style="color:#F4A7C3;font-weight:500;">✓ Certifié</span></p>
+            <div style="display:flex;justify-content:center;gap:10px;margin-bottom:32px;flex-wrap:wrap;" id="review-filters">
+                <button onclick="filterReviews('all')" style="background:#D4527A;color:#fff;border:none;padding:8px 18px;border-radius:20px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;" class="filter-btn">Tous</button>
+                <button onclick="filterReviews(5)" style="background:#2C2C2C;color:#A89FA0;border:1px solid #3C3C3C;padding:8px 18px;border-radius:20px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;" class="filter-btn">★★★★★</button>
+                <button onclick="filterReviews(4)" style="background:#2C2C2C;color:#A89FA0;border:1px solid #3C3C3C;padding:8px 18px;border-radius:20px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;" class="filter-btn">★★★★☆</button>
+                <button onclick="filterReviews(2)" style="background:#2C2C2C;color:#A89FA0;border:1px solid #3C3C3C;padding:8px 18px;border-radius:20px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;" class="filter-btn">★★☆☆☆</button>
+            </div>
+            <div id="reviews-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;max-width:1100px;margin:0 auto;">
+                <!-- Avis générés dynamiquement -->
+            </div>
+        </div>
+
+        <!-- CTA Finale -->
+        <div style="background:linear-gradient(135deg,#1A0A0F 0%,#2C1420 100%);padding:80px 28px;text-align:center;" class="reveal-on-scroll">
+            <h2 style="font-family:'Playfair Display',serif;font-size:40px;color:#F8F4F2;margin-bottom:24px;">Prêt à transformer votre routine de lavage ?</h2>
+            <button onclick="navigateTo('product')" style="background:#D4527A;color:#fff;padding:16px 48px;border:none;border-radius:4px;font-size:16px;font-weight:500;cursor:pointer;transition:background 0.2s;font-family:'Inter',sans-serif;" onmouseover="this.style.background='#B03D63'" onmouseout="this.style.background='#D4527A'">Commander maintenant →</button>
+        </div>
+
+        <!-- Footer -->
+        <footer style="background:#0D0D0D;border-top:1px solid #2C2C2C;padding:40px 28px;">
+            <div style="display:flex;justify-content:space-between;max-width:1100px;margin:0 auto;flex-wrap:wrap;gap:32px;">
+                <div style="min-width:180px;">
+                    <p style="font-family:'Playfair Display',serif;font-size:20px;color:#F4A7C3;">◆ PREPIN'FOAM</p>
+                    <p style="font-size:13px;color:#A89FA0;margin-top:4px;">The Art of Clean.</p>
+                    <p style="font-size:12px;color:#A89FA0;margin-top:12px;">© 2025 PREPIN'FOAM. Tous droits réservés.</p>
+                </div>
+                <div style="min-width:120px;">
+                    <p style="font-size:14px;font-weight:500;color:#F8F4F2;margin-bottom:8px;">Navigation</p>
+                    <p><a href="#" onclick="navigateTo('home');return false;" style="color:#A89FA0;font-size:13px;text-decoration:none;">Accueil</a></p>
+                    <p><a href="#" onclick="navigateTo('product');return false;" style="color:#A89FA0;font-size:13px;text-decoration:none;">Produit</a></p>
+                    <p><a href="#" onclick="navigateTo('cart');return false;" style="color:#A89FA0;font-size:13px;text-decoration:none;">Panier</a></p>
+                    <p><a href="#" style="color:#A89FA0;font-size:13px;text-decoration:none;">FAQ</a></p>
+                </div>
+                <div style="min-width:140px;">
+                    <p style="font-size:14px;font-weight:500;color:#F8F4F2;margin-bottom:8px;">Légal</p>
+                    <p><a href="#" style="color:#A89FA0;font-size:13px;text-decoration:none;">CGV</a></p>
+                    <p><a href="#" style="color:#A89FA0;font-size:13px;text-decoration:none;">Confidentialité</a></p>
+                    <p><a href="#" style="color:#A89FA0;font-size:13px;text-decoration:none;">Mentions légales</a></p>
+                </div>
+                <div style="min-width:160px;">
+                    <p style="font-size:14px;font-weight:500;color:#F8F4F2;margin-bottom:8px;">Contact</p>
+                    <p style="font-size:13px;color:#A89FA0;">contact@prepin foam.fr</p>
+                    <p style="font-size:13px;color:#A89FA0;">+33 1 23 45 67 89</p>
+                    <p style="font-size:12px;color:#A89FA0;">Réponse sous 24h</p>
+                </div>
+            </div>
+        </footer>
+    </section>
+
+    <!-- PAGE 2 — PRODUIT -->
+    <section id="page-product" style="display:none;padding-top:64px;">
+        <div style="display:flex;max-width:1200px;margin:0 auto;padding:60px 28px;gap:40px;flex-wrap:wrap;align-items:flex-start;">
+            <!-- Image de test à la place du canvas Three.js -->
+            <div style="flex:1;min-width:320px;display:flex;flex-direction:column;align-items:center;">
+                <img src="https://placehold.co/500x600/1A1A1A/F4A7C3?text=PREPIN'FOAM%0APink+Magic+Foam%0A(Image+de+test)" alt="Pink Magic Foam" style="max-width:100%;height:auto;border-radius:12px;box-shadow:0 12px 32px rgba(212,82,122,0.2);">
+                <p style="font-size:12px;color:#A89FA0;margin-top:8px;text-align:center;">Image produit — à remplacer ultérieurement</p>
+            </div>
+            <!-- Infos produit -->
+            <div style="flex:1;min-width:320px;">
+                <span style="font-size:11px;letter-spacing:2px;color:#F4A7C3;font-family:'Inter',sans-serif;">SHAMPOING PREMIUM</span>
+                <h1 style="font-family:'Playfair Display',serif;font-size:44px;color:#F8F4F2;margin:8px 0;">Pink Magic Foam</h1>
+                <p style="font-size:16px;color:#A89FA0;margin-bottom:12px;">Shampoing haute concentration — Mousse rose ultra-dense</p>
+                <p style="font-size:14px;color:#C9A84C;margin-bottom:16px;">★★★★★ 4.8 <a href="#section-reviews-produit" style="color:#D4527A;text-decoration:none;">(127 avis)</a></p>
+                <hr style="border:1px solid #2C2C2C;margin:20px 0;">
+                <p style="font-size:14px;font-weight:500;color:#F8F4F2;margin-bottom:14px;">Choisissez votre taille</p>
+                <div id="size-selector" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
+                    <button data-size="100ml" data-price="9.90" data-label="Découverte" style="background:#2C2C2C;border:1px solid #3C3C3C;color:#F8F4F2;padding:12px 16px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;transition:all 0.2s;">100ml<br><span style="font-weight:600;">9,90€</span><br><span style="font-size:10px;color:#A89FA0;">Découverte</span></button>
+                    <button data-size="200ml" data-price="15.90" data-label="Essentiel" style="background:#2C2C2C;border:1px solid #3C3C3C;color:#F8F4F2;padding:12px 16px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;transition:all 0.2s;">200ml<br><span style="font-weight:600;">15,90€</span><br><span style="font-size:10px;color:#A89FA0;">Essentiel</span></button>
+                    <button data-size="250ml" data-price="17.90" data-label="Populaire" style="background:#2C2C2C;border:1px solid #3C3C3C;color:#F8F4F2;padding:12px 16px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;transition:all 0.2s;">250ml<br><span style="font-weight:600;">17,90€</span><br><span style="font-size:10px;color:#A89FA0;">Populaire</span></button>
+                    <button data-size="300ml" data-price="19.90" data-label="Pro" style="background:#2C2C2C;border:1px solid #3C3C3C;color:#F8F4F2;padding:12px 16px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;transition:all 0.2s;">300ml<br><span style="font-weight:600;">19,90€</span><br><span style="font-size:10px;color:#A89FA0;">Pro</span></button>
+                    <button data-size="473ml" data-price="24.90" data-label="Best value" style="background:rgba(212,82,122,0.15);border:2px solid #D4527A;color:#F8F4F2;padding:12px 16px;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;position:relative;transition:all 0.2s;">
+                        <span style="position:absolute;top:-10px;right:-8px;background:#D4527A;color:#fff;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600;">★ Meilleur rapport</span>
+                        473ml<br><span style="font-weight:600;">24,90€</span><br><span style="font-size:10px;color:#A89FA0;">Best value</span>
+                    </button>
+                </div>
+                <p style="font-family:'Playfair Display',serif;font-size:36px;color:#F4A7C3;margin:0;">
+                    <span id="selected-price">24,90€</span>
+                </p>
+                <p style="font-size:13px;color:#A89FA0;margin-bottom:20px;">TTC — Livraison offerte dès 35€</p>
+                <button id="add-to-cart-btn" onclick="addToCart()" style="width:100%;background:#D4527A;color:#fff;padding:16px;border:none;border-radius:4px;font-size:16px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;transition:background 0.2s;" onmouseover="this.style.background='#B03D63'" onmouseout="this.style.background='#D4527A'">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                    Ajouter au panier — <span id="btn-price">24,90€</span>
+                </button>
+                <button onclick="addToCartAndGoCheckout()" style="width:100%;background:transparent;color:#A89FA0;padding:14px;border:1px solid #A89FA0;border-radius:4px;font-size:15px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-top:10px;transition:all 0.2s;" onmouseover="this.style.borderColor='#F8F4F2';this.style.color='#F8F4F2'" onmouseout="this.style.borderColor='#A89FA0';this.style.color='#A89FA0'">Acheter maintenant →</button>
+            </div>
+        </div>
+
+        <!-- Onglets -->
+        <div style="max-width:900px;margin:0 auto;padding:0 28px 40px;" class="reveal-on-scroll">
+            <div style="display:flex;gap:0;border-bottom:1px solid #2C2C2C;margin-bottom:24px;">
+                <button class="tab-btn active-tab" onclick="switchTab('desc')" style="background:none;border:none;padding:12px 24px;font-size:14px;cursor:pointer;color:#F8F4F2;border-bottom:2px solid #D4527A;font-family:'Inter',sans-serif;">Description</button>
+                <button class="tab-btn" onclick="switchTab('instr')" style="background:none;border:none;padding:12px 24px;font-size:14px;cursor:pointer;color:#A89FA0;border-bottom:2px solid transparent;font-family:'Inter',sans-serif;">Instructions</button>
+                <button class="tab-btn" onclick="switchTab('comp')" style="background:none;border:none;padding:12px 24px;font-size:14px;cursor:pointer;color:#A89FA0;border-bottom:2px solid transparent;font-family:'Inter',sans-serif;">Composition</button>
+            </div>
+            <div id="tab-desc" class="tab-content" style="font-size:14px;color:#A89FA0;line-height:1.8;">
+                <p>Pink Magic Foam est une formule de shampoing automobile ultra-concentrée, développée pour les passionnés qui refusent de faire des compromis. Sa mousse rose épaisse et dense pénètre en profondeur pour détacher les particules de saleté, les traces de route et le film de pollution sans agresser la cire ou les sealants protecteurs.</p>
+                <p style="margin-top:12px;">✓ Compatible canon à mousse et pistolet haute pression<br>✓ pH neutre — sans risque pour les traitements céramique<br>✓ Parfum floral doux et persistant<br>✓ Rinçage facile, zéro résidu<br>✓ Fabriqué en Union Européenne</p>
+            </div>
+            <div id="tab-instr" class="tab-content" style="display:none;font-size:14px;color:#A89FA0;line-height:1.8;">
+                <p><strong style="color:#F8F4F2;">Canon à mousse :</strong><br>→ Dilution recommandée : 1:5 à 1:10 (15 à 30% de produit)<br>→ Appliquer sur carrosserie sèche ou mouillée<br>→ Laisser agir 3 à 5 minutes<br>→ Rincer à haute pression</p>
+                <p style="margin-top:12px;"><strong style="color:#F8F4F2;">Pulvérisateur manuel :</strong><br>→ Dilution recommandée : 1:40 à 1:50<br>→ Pulvériser sur panneau par panneau<br>→ Frotter légèrement avec une éponge microfibre<br>→ Rincer abondamment</p>
+                <p style="margin-top:12px;color:#D4527A;">⚠ Éviter d'appliquer en plein soleil ou sur surfaces chaudes.<br>⚠ Conserver hors de portée des enfants. Usage extérieur uniquement.</p>
+            </div>
+            <div id="tab-comp" class="tab-content" style="display:none;font-size:14px;color:#A89FA0;line-height:1.8;">
+                <p>Aqua, Sodium Laureth Sulfate (SLES), Cocamidopropyl Betaine, Glycerin, Parfum (Floral), CI 17200 (Colorant Rose alimentaire), Sodium Chloride, Methylchloroisothiazolinone, pH stabilisateurs.</p>
+                <p style="margin-top:8px;">INCI conforme — Biodégradable à 98%.</p>
+            </div>
+        </div>
+
+        <!-- Avis produit -->
+        <div id="section-reviews-produit" style="background:#1A1A1A;padding:60px 28px;" class="reveal-on-scroll">
+            <h2 style="font-family:'Playfair Display',serif;font-size:30px;text-align:center;color:#F8F4F2;margin-bottom:8px;">Avis clients</h2>
+            <div style="display:flex;justify-content:center;gap:10px;margin-bottom:28px;flex-wrap:wrap;" id="review-filters-produit">
+                <button onclick="filterReviewsProduit('all')" style="background:#D4527A;color:#fff;border:none;padding:8px 18px;border-radius:20px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;" class="filter-btn-p">Tous</button>
+                <button onclick="filterReviewsProduit(5)" style="background:#2C2C2C;color:#A89FA0;border:1px solid #3C3C3C;padding:8px 18px;border-radius:20px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;" class="filter-btn-p">★★★★★</button>
+                <button onclick="filterReviewsProduit(4)" style="background:#2C2C2C;color:#A89FA0;border:1px solid #3C3C3C;padding:8px 18px;border-radius:20px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;" class="filter-btn-p">★★★★☆</button>
+                <button onclick="filterReviewsProduit(2)" style="background:#2C2C2C;color:#A89FA0;border:1px solid #3C3C3C;padding:8px 18px;border-radius:20px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;" class="filter-btn-p">★★☆☆☆</button>
+            </div>
+            <div id="reviews-grid-produit" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;max-width:1100px;margin:0 auto;"></div>
+        </div>
+
+        <!-- Footer produit -->
+        <footer style="background:#0D0D0D;border-top:1px solid #2C2C2C;padding:40px 28px;">
+            <div style="display:flex;justify-content:space-between;max-width:1100px;margin:0 auto;flex-wrap:wrap;gap:32px;">
+                <div style="min-width:180px;">
+                    <p style="font-family:'Playfair Display',serif;font-size:20px;color:#F4A7C3;">◆ PREPIN'FOAM</p>
+                    <p style="font-size:13px;color:#A89FA0;margin-top:4px;">The Art of Clean.</p>
+                    <p style="font-size:12px;color:#A89FA0;margin-top:12px;">© 2025 PREPIN'FOAM. Tous droits réservés.</p>
+                </div>
+                <div style="min-width:120px;">
+                    <p style="font-size:14px;font-weight:500;color:#F8F4F2;margin-bottom:8px;">Navigation</p>
+                    <p><a href="#" onclick="navigateTo('home');return false;" style="color:#A89FA0;font-size:13px;text-decoration:none;">Accueil</a></p>
+                    <p><a href="#" onclick="navigateTo('product');return false;" style="color:#A89FA0;font-size:13px;text-decoration:none;">Produit</a></p>
+                    <p><a href="#" onclick="navigateTo('cart');return false;" style="color:#A89FA0;font-size:13px;text-decoration:none;">Panier</a></p>
+                </div>
+                <div style="min-width:140px;">
+                    <p style="font-size:14px;font-weight:500;color:#F8F4F2;margin-bottom:8px;">Légal</p>
+                    <p><a href="#" style="color:#A89FA0;font-size:13px;text-decoration:none;">CGV</a></p>
+                    <p><a href="#" style="color:#A89FA0;font-size:13px;text-decoration:none;">Confidentialité</a></p>
+                </div>
+                <div style="min-width:160px;">
+                    <p style="font-size:14px;font-weight:500;color:#F8F4F2;margin-bottom:8px;">Contact</p>
+                    <p style="font-size:13px;color:#A89FA0;">contact@prepin foam.fr</p>
+                </div>
+            </div>
+        </footer>
+    </section>
+
+    <!-- PAGE 3 — PANIER -->
+    <section id="page-cart" style="display:none;padding-top:64px;min-height:100vh;">
+        <div style="max-width:1100px;margin:0 auto;padding:40px 28px;">
+            <h1 style="font-family:'Playfair Display',serif;font-size:40px;color:#F8F4F2;">Votre Panier <span id="cart-item-count" style="font-size:18px;color:#A89FA0;">(0 article)</span></h1>
+            <div id="cart-content" style="margin-top:32px;"></div>
+        </div>
+        <footer style="background:#0D0D0D;border-top:1px solid #2C2C2C;padding:40px 28px;margin-top:60px;">
+            <div style="display:flex;justify-content:space-between;max-width:1100px;margin:0 auto;flex-wrap:wrap;gap:32px;">
+                <div style="min-width:180px;"><p style="font-family:'Playfair Display',serif;font-size:20px;color:#F4A7C3;">◆ PREPIN'FOAM</p><p style="font-size:12px;color:#A89FA0;">© 2025 PREPIN'FOAM.</p></div>
+                <div style="min-width:120px;"><p style="font-size:14px;font-weight:500;color:#F8F4F2;">Navigation</p><p><a href="#" onclick="navigateTo('home');return false;" style="color:#A89FA0;font-size:13px;">Accueil</a></p></div>
+            </div>
+        </footer>
+    </section>
+
+    <!-- PAGE 4 — CHECKOUT -->
+    <section id="page-checkout" style="display:none;padding-top:64px;min-height:100vh;">
+        <div style="max-width:1100px;margin:0 auto;padding:40px 28px;display:flex;gap:40px;flex-wrap:wrap;">
+            <div style="flex:1.5;min-width:320px;">
+                <h2 style="font-family:'Playfair Display',serif;font-size:28px;color:#F8F4F2;margin-bottom:24px;">Informations de livraison</h2>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <input type="text" id="checkout-prenom" placeholder="Prénom *" style="background:#1A1A1A;border:1px solid #3C3C3C;border-radius:4px;color:#F8F4F2;padding:12px 16px;font-family:'Inter',sans-serif;font-size:14px;width:100%;">
+                    <input type="text" id="checkout-nom" placeholder="Nom *" style="background:#1A1A1A;border:1px solid #3C3C3C;border-radius:4px;color:#F8F4F2;padding:12px 16px;font-family:'Inter',sans-serif;font-size:14px;width:100%;">
+                    <input type="text" id="checkout-adresse1" placeholder="Adresse ligne 1 *" style="grid-column:1/-1;background:#1A1A1A;border:1px solid #3C3C3C;border-radius:4px;color:#F8F4F2;padding:12px 16px;font-family:'Inter',sans-serif;font-size:14px;width:100%;">
+                    <input type="text" id="checkout-adresse2" placeholder="Adresse ligne 2" style="grid-column:1/-1;background:#1A1A1A;border:1px solid #3C3C3C;border-radius:4px;color:#F8F4F2;padding:12px 16px;font-family:'Inter',sans-serif;font-size:14px;width:100%;">
+                    <input type="text" id="checkout-cp" placeholder="Code postal *" style="background:#1A1A1A;border:1px solid #3C3C3C;border-radius:4px;color:#F8F4F2;padding:12px 16px;font-family:'Inter',sans-serif;font-size:14px;width:100%;">
+                    <input type="text" id="checkout-ville" placeholder="Ville *" style="background:#1A1A1A;border:1px solid #3C3C3C;border-radius:4px;color:#F8F4F2;padding:12px 16px;font-family:'Inter',sans-serif;font-size:14px;width:100%;">
+                    <select id="checkout-pays" style="grid-column:1/-1;background:#1A1A1A;border:1px solid #3C3C3C;border-radius:4px;color:#F8F4F2;padding:12px 16px;font-family:'Inter',sans-serif;font-size:14px;width:100%;">
+                        <option>France</option><option>Belgique</option><option>Suisse</option><option>Luxembourg</option><option>Allemagne</option><option>Espagne</option><option>Italie</option>
+                    </select>
+                    <input type="tel" id="checkout-tel" placeholder="Téléphone" style="grid-column:1/-1;background:#1A1A1A;border:1px solid #3C3C3C;border-radius:4px;color:#F8F4F2;padding:12px 16px;font-family:'Inter',sans-serif;font-size:14px;width:100%;">
+                    <input type="email" id="checkout-email" placeholder="Email *" style="grid-column:1/-1;background:#1A1A1A;border:1px solid #3C3C3C;border-radius:4px;color:#F8F4F2;padding:12px 16px;font-family:'Inter',sans-serif;font-size:14px;width:100%;">
+                </div>
+                <h3 style="font-family:'Playfair Display',serif;font-size:20px;color:#F8F4F2;margin:28px 0 16px;">Mode de paiement</h3>
+                <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+                    <label id="payment-cb-label" style="background:rgba(212,82,122,0.15);border:2px solid #D4527A;border-radius:8px;padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:10px;flex:1;min-width:180px;" onclick="selectPayment('cb')">
+                        <input type="radio" name="payment" value="cb" checked style="accent-color:#D4527A;"> <span style="color:#F8F4F2;font-weight:500;">Carte bancaire</span>
+                        <svg width="36" height="22" viewBox="0 0 36 22" style="margin-left:auto;"><rect width="36" height="22" rx="3" fill="#1A1A1A" stroke="#3C3C3C"/><text x="8" y="15" fill="#F4A7C3" font-size="9" font-weight="700">VISA</text></svg>
+                    </label>
+                    <label id="payment-pp-label" style="background:#2C2C2C;border:1px solid #3C3C3C;border-radius:8px;padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:10px;flex:1;min-width:180px;" onclick="selectPayment('pp')">
+                        <input type="radio" name="payment" value="pp" style="accent-color:#D4527A;"> <span style="color:#F8F4F2;font-weight:500;">PayPal</span>
+                        <svg width="36" height="22" viewBox="0 0 36 22" style="margin-left:auto;"><rect width="36" height="22" rx="3" fill="#1A1A1A" stroke="#3C3C3C"/><text x="6" y="15" fill="#F4A7C3" font-size="9" font-weight="700">PP</text></svg>
+                    </label>
+                </div>
+                <div id="cb-fields">
+                    <input type="text" id="checkout-card" placeholder="Numéro de carte *" maxlength="19" style="background:#1A1A1A;border:1px solid #3C3C3C;border-radius:4px;color:#F8F4F2;padding:12px 16px;font-family:'Inter',sans-serif;font-size:14px;width:100%;margin-bottom:10px;">
+                    <div style="display:flex;gap:10px;">
+                        <input type="text" id="checkout-expiry" placeholder="MM/AA *" maxlength="5" style="background:#1A1A1A;border:1px solid #3C3C3C;border-radius:4px;color:#F8F4F2;padding:12px 16px;font-family:'Inter',sans-serif;font-size:14px;flex:1;">
+                        <input type="text" id="checkout-cvv" placeholder="CVV *" maxlength="4" style="background:#1A1A1A;border:1px solid #3C3C3C;border-radius:4px;color:#F8F4F2;padding:12px 16px;font-family:'Inter',sans-serif;font-size:14px;flex:1;">
+                    </div>
+                </div>
+                <div id="pp-fields" style="display:none;">
+                    <p style="font-size:14px;color:#A89FA0;">Vous serez redirigé vers PayPal pour finaliser le paiement.</p>
+                </div>
+                <button id="checkout-submit-btn" onclick="validateCheckout()" style="width:100%;background:#D4527A;color:#fff;padding:16px;border:none;border-radius:4px;font-size:16px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;margin-top:20px;transition:background 0.2s;" onmouseover="this.style.background='#B03D63'" onmouseout="this.style.background='#D4527A'">Confirmer et payer <span id="checkout-total-amount">0,00€</span> →</button>
+                <p style="text-align:center;font-size:12px;color:#A89FA0;margin-top:10px;">🔒 Paiement sécurisé SSL — Données cryptées</p>
+            </div>
+            <div style="flex:1;min-width:280px;">
+                <div style="background:#1A1A1A;border-radius:8px;padding:24px;position:sticky;top:80px;">
+                    <h3 style="font-size:16px;font-weight:500;color:#F8F4F2;margin-bottom:16px;">Récapitulatif</h3>
+                    <div id="checkout-summary-items"></div>
+                    <hr style="border:1px solid #2C2C2C;margin:16px 0;">
+                    <div id="checkout-summary-totals"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PAGE 5 — CONFIRMATION -->
+    <section id="page-confirm" style="display:none;padding-top:64px;min-height:100vh;">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:100px 28px;text-align:center;">
+            <div id="confirm-check-circle" style="margin-bottom:24px;">
+                <svg width="90" height="90" viewBox="0 0 90 90">
+                    <circle cx="45" cy="45" r="40" fill="none" stroke="#D4527A" stroke-width="3" stroke-dasharray="251" stroke-dashoffset="251" style="animation:drawCheck 1s ease-out forwards;"/>
+                    <polyline points="28,46 40,58 64,32" fill="none" stroke="#D4527A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="60" stroke-dashoffset="60" style="animation:drawCheck 0.5s 0.5s ease-out forwards;"/>
+                </svg>
+            </div>
+            <span style="font-size:11px;letter-spacing:3px;color:#F4A7C3;background:rgba(244,167,195,0.1);border:1px solid #F4A7C3;border-radius:20px;padding:4px 14px;margin-bottom:16px;display:inline-block;">COMMANDE CONFIRMÉE</span>
+            <h1 style="font-family:'Playfair Display',serif;font-size:48px;color:#F8F4F2;margin:12px 0;">Merci pour votre commande !</h1>
+            <p style="font-size:16px;color:#A89FA0;max-width:500px;margin-bottom:20px;">Votre Pink Magic Foam est en route. Vous recevrez un e-mail de confirmation dans quelques minutes.</p>
+            <div id="order-id-display" style="background:#2C2C2C;border-radius:6px;padding:16px 24px;margin-bottom:24px;display:flex;align-items:center;gap:12px;">
+                <span style="font-size:16px;font-weight:500;color:#F4A7C3;" id="order-number-text">PREP-2025-XXXXXXXX</span>
+                <button onclick="copyOrderId()" style="background:none;border:none;cursor:pointer;color:#A89FA0;padding:4px;" title="Copier">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                </button>
+            </div>
+            <div id="confirm-summary" style="max-width:500px;width:100%;margin-bottom:28px;text-align:left;"></div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;">
+                <button onclick="resetAndGoHome()" style="background:#D4527A;color:#fff;padding:14px 32px;border:none;border-radius:4px;font-size:15px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Retour à l'accueil</button>
+                <button onclick="alert('Fonctionnalité bientôt disponible')" style="background:transparent;color:#A89FA0;padding:14px 32px;border:1px solid #A89FA0;border-radius:4px;font-size:15px;cursor:pointer;font-family:'Inter',sans-serif;">Télécharger la facture</button>
+            </div>
+            <p style="font-size:13px;color:#A89FA0;margin-top:32px;">Suivez-nous pour des conseils detailing : @prepin foam.detailing</p>
+        </div>
+    </section>
+
+    <!-- Toast container -->
+    <div id="toast-container"></div>
+
+    <!-- Scripts JS -->
+    <script>
+        // ============ ÉTAT GLOBAL ============
+        const state = {
+            cart: [],
+            currentPage: 'home',
+            selectedSize: '473ml',
+            selectedPrice: '24.90',
+            paymentMethod: 'cb',
+            orderId: '',
+        };
+
+        // ============ NAVIGATION SPA ============
+        function navigateTo(pageId) {
+            document.querySelectorAll('section[id^="page-"]').forEach(s => s.style.display = 'none');
+            const target = document.getElementById('page-' + pageId);
+            if (target) {
+                target.style.display = 'block';
+                target.style.animation = 'none';
+                target.offsetHeight;
+                target.style.animation = 'fadeIn 0.3s ease-out';
+            }
+            state.currentPage = pageId;
+            window.scrollTo(0, 0);
+            updateCartBadge();
+            if (pageId === 'cart') renderCart();
+            if (pageId === 'confirm') renderConfirm();
+            if (pageId === 'checkout') updateCheckoutSummary();
+        }
+
+        function updateCartBadge() {
+            const total = state.cart.reduce((s, i) => s + i.qty, 0);
+            const badge = document.getElementById('cart-count');
+            badge.textContent = total;
+            badge.style.display = total > 0 ? 'flex' : 'none';
+        }
+
+        // ============ TOAST ============
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = '✓ ' + message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('toast-out');
+                setTimeout(() => toast.remove(), 350);
+            }, 2000);
+        }
+
+        // ============ PANIER ============
+        function addToCart() {
+            const existing = state.cart.find(i => i.size === state.selectedSize);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                state.cart.push({
+                    id: Date.now().toString(36),
+                    name: 'Pink Magic Foam',
+                    size: state.selectedSize,
+                    price: parseFloat(state.selectedPrice),
+                    qty: 1,
+                    imageUrl: '',
+                });
+            }
+            updateCartBadge();
+            showToast('Ajouté au panier');
+        }
+
+        function addToCartAndGoCheckout() {
+            addToCart();
+            navigateTo('checkout');
+        }
+
+        function removeFromCart(id) {
+            state.cart = state.cart.filter(i => i.id !== id);
+            updateCartBadge();
+            renderCart();
+        }
+
+        function updateQty(id, delta) {
+            const item = state.cart.find(i => i.id === id);
+            if (item) {
+                item.qty = Math.max(1, item.qty + delta);
+                updateCartBadge();
+                renderCart();
+            }
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-content');
+            const countSpan = document.getElementById('cart-item-count');
+            const totalItems = state.cart.reduce((s, i) => s + i.qty, 0);
+            countSpan.textContent = '(' + totalItems + ' article' + (totalItems !== 1 ? 's' : '') + ')';
+
+            if (state.cart.length === 0) {
+                container.innerHTML = `
+                <div style="text-align:center;padding:60px 20px;">
+                  <svg width="80" height="80" viewBox="0 0 80 80" style="margin:0 auto 20px;">
+                    <circle cx="40" cy="40" r="30" fill="none" stroke="#2C2C2C" stroke-width="2"/>
+                    <path d="M25 28L55 28L52 55L28 55Z" fill="none" stroke="#A89FA0" stroke-width="2" stroke-linejoin="round"/>
+                    <line x1="25" y1="28" x2="55" y2="28" stroke="#A89FA0" stroke-width="2"/>
+                    <path d="M33 28V22a7 7 0 0114 0v6" fill="none" stroke="#A89FA0" stroke-width="2"/>
+                  </svg>
+                  <p style="font-size:18px;color:#A89FA0;margin-bottom:20px;">Votre panier est vide.</p>
+                  <button onclick="navigateTo('product')" style="background:#D4527A;color:#fff;padding:12px 28px;border:none;border-radius:4px;font-size:14px;cursor:pointer;font-family:'Inter',sans-serif;">Découvrir le produit</button>
+                </div>`;
+                return;
+            }
+
+            const subtotal = state.cart.reduce((s, i) => s + i.price * i.qty, 0);
+            const shipping = subtotal >= 35 ? 0 : 4.90;
+            const total = subtotal + shipping;
+
+            let itemsHTML = state.cart.map(item => `
+            <div style="background:#2C2C2C;border-radius:8px;padding:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+              <div style="width:48px;height:48px;border-radius:50%;background:rgba(244,167,195,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <span style="color:#F4A7C3;font-weight:700;font-size:14px;">PF</span>
+              </div>
+              <div style="flex:1;min-width:120px;">
+                <p style="font-size:16px;font-weight:500;color:#F8F4F2;">Pink Magic Foam</p>
+                <p style="font-size:13px;color:#A89FA0;">Taille : ${item.size}</p>
+              </div>
+              <p style="font-size:16px;color:#F4A7C3;font-weight:500;">${item.price.toFixed(2).replace('.',',')}€</p>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button onclick="updateQty('${item.id}',-1)" style="width:28px;height:28px;border-radius:50%;background:#1A1A1A;border:1px solid #3C3C3C;color:#F8F4F2;cursor:pointer;font-size:16px;line-height:1;">−</button>
+                <span style="color:#F8F4F2;font-weight:500;">${item.qty}</span>
+                <button onclick="updateQty('${item.id}',1)" style="width:28px;height:28px;border-radius:50%;background:#1A1A1A;border:1px solid #3C3C3C;color:#F8F4F2;cursor:pointer;font-size:16px;line-height:1;">+</button>
+              </div>
+              <p style="font-size:16px;font-weight:500;color:#F8F4F2;">${(item.price*item.qty).toFixed(2).replace('.',',')}€</p>
+              <button onclick="removeFromCart('${item.id}')" style="background:none;border:none;cursor:pointer;color:#A89FA0;padding:4px;" title="Supprimer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              </button>
+            </div>`).join('');
+
+            let promoHTML = '';
+            if (subtotal >= 35) {
+                promoHTML =
+                    '<div style="background:rgba(212,82,122,0.1);border:1px solid #D4527A;border-radius:6px;padding:10px 16px;margin-bottom:16px;text-align:center;color:#F4A7C3;font-size:14px;">🎉 Livraison gratuite débloquée !</div>';
+            } else {
+                const manque = (35 - subtotal).toFixed(2).replace('.', ',');
+                const pct = Math.min(100, Math.round((subtotal / 35) * 100));
+                promoHTML = `
+                <div style="margin-bottom:16px;">
+                  <p style="font-size:13px;color:#A89FA0;margin-bottom:6px;">Plus que ${manque}€ pour la livraison gratuite</p>
+                  <div style="background:#2C2C2C;border-radius:10px;height:8px;overflow:hidden;">
+                    <div style="background:#D4527A;height:100%;width:${pct}%;border-radius:10px;transition:width 0.4s;"></div>
+                  </div>
+                </div>`;
+            }
+
+            container.innerHTML = `
+            <div style="display:flex;gap:30px;flex-wrap:wrap;">
+              <div style="flex:2;min-width:300px;">${itemsHTML}</div>
+              <div style="flex:1;min-width:260px;">
+                <div style="background:#1A1A1A;border-radius:8px;padding:28px;position:sticky;top:80px;">
+                  <h3 style="font-size:16px;font-weight:500;color:#F8F4F2;margin-bottom:16px;">Résumé</h3>
+                  ${promoHTML}
+                  <div style="display:flex;justify-content:space-between;font-size:14px;color:#A89FA0;margin-bottom:8px;"><span>Sous-total</span><span>${subtotal.toFixed(2).replace('.',',')}€</span></div>
+                  <div style="display:flex;justify-content:space-between;font-size:14px;color:#A89FA0;margin-bottom:8px;"><span>Livraison</span><span>${shipping===0?'Offerte ✓':shipping.toFixed(2).replace('.',',')+'€'}</span></div>
+                  <hr style="border:1px solid #2C2C2C;margin:12px 0;">
+                  <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:600;color:#F8F4F2;margin-bottom:20px;"><span>Total TTC</span><span>${total.toFixed(2).replace('.',',')}€</span></div>
+                  <button onclick="navigateTo('checkout')" style="width:100%;background:#D4527A;color:#fff;padding:14px;border:none;border-radius:4px;font-size:16px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;">Passer la commande →</button>
+                  <button onclick="navigateTo('product')" style="width:100%;background:transparent;color:#A89FA0;padding:12px;border:1px solid #A89FA0;border-radius:4px;font-size:14px;cursor:pointer;font-family:'Inter',sans-serif;margin-top:10px;">← Continuer mes achats</button>
+                </div>
+              </div>
+            </div>`;
+        }
+
+        // ============ CHECKOUT ============
+        function updateCheckoutSummary() {
+            const subtotal = state.cart.reduce((s, i) => s + i.price * i.qty, 0);
+            const shipping = subtotal >= 35 ? 0 : 4.90;
+            const total = subtotal + shipping;
+
+            document.getElementById('checkout-total-amount').textContent = total.toFixed(2).replace('.', ',') +
+                '€';
+            document.getElementById('checkout-submit-btn').innerHTML = 'Confirmer et payer ' + total.toFixed(2).replace(
+                '.', ',') + '€ →';
+
+            const itemsContainer = document.getElementById('checkout-summary-items');
+            itemsContainer.innerHTML = state.cart.map(i => `
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:#A89FA0;margin-bottom:6px;">
+              <span>${i.name} (${i.size}) x${i.qty}</span>
+              <span>${(i.price*i.qty).toFixed(2).replace('.',',')}€</span>
+            </div>`).join('');
+
+            const totalsContainer = document.getElementById('checkout-summary-totals');
+            totalsContainer.innerHTML = `
+            <div style="display:flex;justify-content:space-between;font-size:14px;color:#A89FA0;margin-bottom:4px;"><span>Sous-total</span><span>${subtotal.toFixed(2).replace('.',',')}€</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;color:#A89FA0;margin-bottom:4px;"><span>Livraison</span><span>${shipping===0?'Offerte':shipping.toFixed(2).replace('.',',')+'€'}</span></div>
+            <hr style="border:1px solid #2C2C2C;margin:8px 0;">
+            <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:600;color:#F8F4F2;"><span>Total</span><span>${total.toFixed(2).replace('.',',')}€</span></div>`;
+        }
+
+        function selectPayment(method) {
+            state.paymentMethod = method;
+            const cbLabel = document.getElementById('payment-cb-label');
+            const ppLabel = document.getElementById('payment-pp-label');
+            const cbFields = document.getElementById('cb-fields');
+            const ppFields = document.getElementById('pp-fields');
+
+            if (method === 'cb') {
+                cbLabel.style.background = 'rgba(212,82,122,0.15)';
+                cbLabel.style.border = '2px solid #D4527A';
+                ppLabel.style.background = '#2C2C2C';
+                ppLabel.style.border = '1px solid #3C3C3C';
+                cbFields.style.display = 'block';
+                ppFields.style.display = 'none';
+                document.querySelector('input[name="payment"][value="cb"]').checked = true;
+            } else {
+                ppLabel.style.background = 'rgba(212,82,122,0.15)';
+                ppLabel.style.border = '2px solid #D4527A';
+                cbLabel.style.background = '#2C2C2C';
+                cbLabel.style.border = '1px solid #3C3C3C';
+                cbFields.style.display = 'none';
+                ppFields.style.display = 'block';
+                document.querySelector('input[name="payment"][value="pp"]').checked = true;
+            }
+        }
+
+        function validateCheckout() {
+            const required = ['checkout-prenom', 'checkout-nom', 'checkout-adresse1', 'checkout-cp', 'checkout-ville',
+                'checkout-email'
+            ];
+            let valid = true;
+            required.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el.value.trim()) {
+                    el.style.border = '2px solid #E24B4A';
+                    valid = false;
+                } else {
+                    el.style.border = '1px solid #3C3C3C';
+                }
+            });
+            if (state.paymentMethod === 'cb') {
+                const cardEl = document.getElementById('checkout-card');
+                const expEl = document.getElementById('checkout-expiry');
+                const cvvEl = document.getElementById('checkout-cvv');
+                if (!cardEl.value.trim() || cardEl.value.replace(/\s/g, '').length < 13) {
+                    cardEl.style.border = '2px solid #E24B4A';
+                    valid = false;
+                } else cardEl.style.border = '1px solid #3C3C3C';
+                if (!expEl.value.trim() || expEl.value.length < 4) {
+                    expEl.style.border = '2px solid #E24B4A';
+                    valid = false;
+                } else expEl.style.border = '1px solid #3C3C3C';
+                if (!cvvEl.value.trim() || cvvEl.value.length < 3) {
+                    cvvEl.style.border = '2px solid #E24B4A';
+                    valid = false;
+                } else cvvEl.style.border = '1px solid #3C3C3C';
+            }
+            if (!valid) {
+                showToast('Veuillez remplir tous les champs requis');
+                return;
+            }
+            state.orderId = generateOrderId();
+            navigateTo('confirm');
+        }
+
+        function generateOrderId() {
+            return 'PREP-' + new Date().getFullYear() + '-' + Math.random().toString(36).substr(2, 8).toUpperCase();
+        }
+
+        function renderConfirm() {
+            document.getElementById('order-number-text').textContent = 'N° de commande : ' + state.orderId;
+            const subtotal = state.cart.reduce((s, i) => s + i.price * i.qty, 0);
+            const shipping = subtotal >= 35 ? 0 : 4.90;
+            const total = subtotal + shipping;
+            const summaryDiv = document.getElementById('confirm-summary');
+            summaryDiv.innerHTML = `
+            <div style="background:#2C2C2C;border-radius:8px;padding:20px;">
+              <h4 style="font-size:14px;font-weight:500;color:#F8F4F2;margin-bottom:12px;">Articles commandés</h4>
+              ${state.cart.map(i=>`
+                <div style="display:flex;justify-content:space-between;font-size:13px;color:#A89FA0;margin-bottom:6px;">
+                  <span>${i.name} (${i.size}) x${i.qty}</span>
+                  <span>${(i.price*i.qty).toFixed(2).replace('.',',')}€</span>
+                </div>`).join('')}
+              <hr style="border:1px solid #3C3C3C;margin:10px 0;">
+              <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:600;color:#F8F4F2;"><span>Total</span><span>${total.toFixed(2).replace('.',',')}€</span></div>
+            </div>`;
+        }
+
+        function copyOrderId() {
+            navigator.clipboard.writeText(state.orderId).then(() => showToast('Numéro de commande copié !'));
+        }
+
+        function resetAndGoHome() {
+            state.cart = [];
+            updateCartBadge();
+            navigateTo('home');
+        }
+
+        // ============ SÉLECTEUR DE TAILLE ============
+        document.addEventListener('DOMContentLoaded', () => {
+            const sizeButtons = document.querySelectorAll('#size-selector button');
+            sizeButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    sizeButtons.forEach(b => {
+                        b.style.background = '#2C2C2C';
+                        b.style.border = '1px solid #3C3C3C';
+                    });
+                    this.style.background = 'rgba(212,82,122,0.15)';
+                    this.style.border = '2px solid #D4527A';
+                    state.selectedSize = this.dataset.size;
+                    state.selectedPrice = this.dataset.price;
+                    document.getElementById('selected-price').textContent = parseFloat(this.dataset
+                        .price).toFixed(2).replace('.', ',') + '€';
+                    document.getElementById('btn-price').textContent = parseFloat(this.dataset.price)
+                        .toFixed(2).replace('.', ',') + '€';
+                });
+            });
+        });
+
+        // ============ ONGLETS ============
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.style.color = '#A89FA0';
+                b.style.borderBottom = '2px solid transparent';
+                b.classList.remove('active-tab');
+            });
+            document.getElementById('tab-' + tab).style.display = 'block';
+            const activeBtn = document.querySelector(`.tab-btn:nth-${tab==='desc'?'1':tab==='instr'?'2':'3'}`);
+            if (activeBtn) {
+                activeBtn.style.color = '#F8F4F2';
+                activeBtn.style.borderBottom = '2px solid #D4527A';
+                activeBtn.classList.add('active-tab');
+            }
+        }
+
+        // ============ AVIS ============
+        const reviewsData = [
+            { name: 'Nicolas M.', stars: 5, size: '473ml',
+                text: "Mousse incroyablement dense, vraiment rose comme promis. L'odeur est agréable et la saleté part sans effort. Mon Kärcher adore ce produit.",
+                border: false },
+            { name: 'Sophie L.', stars: 5, size: '300ml',
+                text: "Parfait avec mon canon à mousse. La carrosserie ressort brillante, aucun résidu. Je ne changerai plus de produit.",
+                border: false },
+            { name: 'Julien R.', stars: 4, size: '473ml',
+                text: "Très concentré, une petite bouteille dure longtemps. Livraison rapide et bien emballée. Je recommande.",
+                border: false },
+            { name: 'Marc D.', stars: 5, size: '200ml',
+                text: "Testé sur ma BMW, résultat impeccable. La mousse reste accrochée au moins 5 minutes, le temps de faire le tour du véhicule.",
+                border: false },
+            { name: 'Thomas B.', stars: 2, size: '100ml',
+                text: "À faible dilution (1:60), la mousse est insuffisante et disparaît trop vite. Il faut respecter le dosage recommandé. Bien en suivant les instructions, décevant sinon.",
+                border: true },
+        ];
+
+        function renderReviews(containerId, filterStars = 'all') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const filtered = filterStars === 'all' ? reviewsData : reviewsData.filter(r => r.stars === parseInt(
+                filterStars));
+            container.innerHTML = filtered.map(r => `
+            <div style="background:#2C2C2C;border-radius:8px;padding:24px;${r.border?'border:1px solid #3C2C2C;':''}">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:#D4527A;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:600;">${r.name.charAt(0)}${r.name.split(' ')[1]?.charAt(0)||''}</div>
+                <span style="font-size:14px;font-weight:500;color:#F8F4F2;">${r.name}</span>
+                <span style="font-size:11px;color:#A89FA0;background:#1A1A1A;padding:2px 8px;border-radius:10px;">${r.size}</span>
+              </div>
+              <div style="color:#C9A84C;font-size:14px;margin-bottom:8px;">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div>
+              <p style="font-size:14px;color:#A89FA0;line-height:1.6;">${r.text}</p>
+            </div>`).join('');
+        }
+
+        function filterReviews(stars) {
+            renderReviews('reviews-grid', stars);
+            document.querySelectorAll('#review-filters .filter-btn').forEach(b => {
+                b.style.background = '#2C2C2C';
+                b.style.color = '#A89FA0';
+                b.style.border = '1px solid #3C3C3C';
+            });
+            const active = document.querySelector(`#review-filters .filter-btn:nth-${stars==='all'?'1':stars===5?'2':stars===4?'3':'4'}`);
+            if (active) { active.style.background = '#D4527A';
+                active.style.color = '#fff';
+                active.style.border = 'none'; }
+        }
+
+        function filterReviewsProduit(stars) {
+            renderReviews('reviews-grid-produit', stars);
+            document.querySelectorAll('#review-filters-produit .filter-btn-p').forEach(b => {
+                b.style.background = '#2C2C2C';
+                b.style.color = '#A89FA0';
+                b.style.border = '1px solid #3C3C3C';
+            });
+            const active = document.querySelector(
+                `#review-filters-produit .filter-btn-p:nth-${stars==='all'?'1':stars===5?'2':stars===4?'3':'4'}`);
+            if (active) { active.style.background = '#D4527A';
+                active.style.color = '#fff';
+                active.style.border = 'none'; }
+        }
+
+        // Init reviews
+        document.addEventListener('DOMContentLoaded', () => {
+            renderReviews('reviews-grid');
+            renderReviews('reviews-grid-produit');
+        });
+
+        // ============ FORMATAGE CB ============
+        document.addEventListener('DOMContentLoaded', () => {
+            const cardInput = document.getElementById('checkout-card');
+            if (cardInput) {
+                cardInput.addEventListener('input', function(e) {
+                    let val = this.value.replace(/\s/g, '').replace(/[^\d]/g, '');
+                    val = val.match(/.{1,4}/g)?.join(' ') || val;
+                    this.value = val.substring(0, 19);
+                });
+            }
+            const expiryInput = document.getElementById('checkout-expiry');
+            if (expiryInput) {
+                expiryInput.addEventListener('input', function(e) {
+                    let val = this.value.replace(/[^\d]/g, '');
+                    if (val.length >= 2) val = val.substring(0, 2) + '/' + val.substring(2, 4);
+                    this.value = val.substring(0, 5);
+                });
+            }
+        });
+
+        // ============ HERO PARTICLES ============
+        function createHeroParticles() {
+            const container = document.getElementById('hero-particles');
+            if (!container) return;
+            for (let i = 0; i < 25; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'hero-particle';
+                const size = Math.random() * 40 + 10;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 7 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 6) + 's';
+                particle.style.opacity = Math.random() * 0.4 + 0.1;
+                container.appendChild(particle);
+            }
+        }
+
+        // ============ SCROLL REVEAL (IntersectionObserver) ============
+        function initScrollReveal() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('revealed');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
+        }
+
+        // ============ INIT GLOBALE ============
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCartBadge();
+            createHeroParticles();
+            initScrollReveal();
+            // Afficher page home par défaut
+            document.getElementById('page-home').style.display = 'block';
+            document.getElementById('cart-count').style.display = 'none';
+        });
+
+        // ============ RESPONSIVE NAV ============
+        function handleResize() {
+            const navLinks = document.getElementById('nav-links');
+            if (window.innerWidth < 768) {
+                if (navLinks) navLinks.style.display = 'none';
+            } else {
+                if (navLinks) navLinks.style.display = 'flex';
+            }
+        }
+        window.addEventListener('resize', handleResize);
+        document.addEventListener('DOMContentLoaded', handleResize);
+
+        console.log('🧼 PREPIN\'FOAM — Pink Magic Foam — The Art of Clean. ✨');
+        console.log('Site e-commerce SPA prêt. Image de test sur la page produit — à remplacer.');
+    </script>
+</body>
+</html>
